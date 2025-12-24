@@ -18,42 +18,41 @@ const app = express()
 const port = process.env.PORT || 5000
 
 /* =========================
-   BODY PARSER
+   BODY PARSER & COOKIES
 ========================= */
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(cookieParser())
+app.use(cookieParser()) // ✅ REQUIRED for authMiddleware
 
 /* =========================
-   ✅ SINGLE, CORRECT CORS
+   ✅ CORS CONFIG (Vercel + Render)
 ========================= */
 const allowedOrigins = [
   'http://localhost:3000',
   'https://bharatmart.vercel.app',
-  'https://bharatmartpr.vercel.app',
   'https://bharatmartps.vercel.app',
 ]
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // allow server-to-server, Postman, Render health checks
-      if (!origin) return callback(null, true)
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow Postman, server-to-server, health checks
+    if (!origin) return callback(null, true)
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true)
-      } else {
-        callback(new Error('Not allowed by CORS'))
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-)
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
+
+app.use(cors(corsOptions))
 
 // IMPORTANT: handle preflight requests
-app.options('*', cors())
+app.options('*', cors(corsOptions))
 
 /* =========================
    ROUTES
@@ -77,7 +76,9 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '/frontend/build')))
 
   app.get('*', (req, res) =>
-    res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'))
+    res.sendFile(
+      path.resolve(__dirname, 'frontend', 'build', 'index.html')
+    )
   )
 } else {
   app.use('/uploads', express.static(path.join(__dirname, '/uploads')))
@@ -98,6 +99,7 @@ app.use(errorHandler)
 app.listen(port, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${port}`)
 )
+
 
 
 
