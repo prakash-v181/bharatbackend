@@ -12,7 +12,6 @@ import uploadRoutes from './routes/uploadRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 
 dotenv.config()
-
 connectDB()
 
 const app = express()
@@ -26,17 +25,35 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 
 /* =========================
-   ✅ CORS (VERY IMPORTANT)
+   ✅ SINGLE, CORRECT CORS
 ========================= */
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://bharatmart.vercel.app',
+  'https://bharatmartpr.vercel.app',
+  'https://bharatmartps.vercel.app',
+]
+
 app.use(
   cors({
-    origin: [
-      'http://localhost:3000',          // local frontend
-      'https://bharatmart.vercel.app',  // vercel frontend (change if needed)
-    ],
+    origin: (origin, callback) => {
+      // allow server-to-server, Postman, Render health checks
+      if (!origin) return callback(null, true)
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 )
+
+// IMPORTANT: handle preflight requests
+app.options('*', cors())
 
 /* =========================
    ROUTES
@@ -65,7 +82,7 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   app.use('/uploads', express.static(path.join(__dirname, '/uploads')))
   app.get('/', (req, res) => {
-    res.send('API is running....')
+    res.send('API is running...')
   })
 }
 
@@ -81,7 +98,6 @@ app.use(errorHandler)
 app.listen(port, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${port}`)
 )
-
 
 
 
