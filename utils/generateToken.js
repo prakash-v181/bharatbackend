@@ -1,23 +1,20 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 
 const generateToken = (res, userId) => {
-  // Create JWT
   const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: '30d',
-  })
+  });
 
-  // Set JWT as HTTP-only cookie
   res.cookie('jwt', token, {
-    httpOnly: true,                           // Prevent JS access (XSS safe)
-    secure: process.env.NODE_ENV === 'production', // Required for HTTPS (Vercel/Render)
-    sameSite: 'None',                         // 🔥 REQUIRED for cross-domain cookies
-    maxAge: 30 * 24 * 60 * 60 * 1000,          // 30 days
-  })
-}
+    httpOnly: true,
+    secure: true,   // 🔥 Always true on Render (HTTPS)
+    sameSite: 'none', // 🔥 Required for cross-site cookie
+    path: '/', // 🔥 Ensures cookie is valid for all paths
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
+};
 
-export default generateToken
-
-
+export default generateToken;
 
 
 // import jwt from 'jsonwebtoken';

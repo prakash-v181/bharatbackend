@@ -1,3 +1,5 @@
+// productRoutes.js
+
 import express from 'express'
 import {
   getProducts,
@@ -7,7 +9,9 @@ import {
   deleteProduct,
   createProductReview,
   getTopProducts,
+  getProductReviews
 } from '../controllers/productController.js'
+
 import { protect, admin } from '../middleware/authMiddleware.js'
 import checkObjectId from '../middleware/checkObjectId.js'
 
@@ -27,11 +31,15 @@ router.route('/:id')
   .put(protect, admin, checkObjectId, updateProduct)
   .delete(protect, admin, checkObjectId, deleteProduct)
 
-// 🔐 PROTECTED: create review (login required)
-router.route('/:id/reviews')
-  .post(protect, checkObjectId, createProductReview)
+// ⭐ NEW — PUBLIC: get product reviews
+router.get('/:id/reviews', checkObjectId, getProductReviews)
+
+// 🔐 PROTECTED: add review
+router.post('/:id/reviews', protect, checkObjectId, createProductReview)
 
 export default router
+
+
 
 
 
